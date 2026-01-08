@@ -2,14 +2,26 @@ package org.spacex.entities;
 
 public class Rocket {
 
-    private int id;
+  private final String name;
 
-    private String name;
+  private final RocketStatus status;
 
-    private String status;
+  private String missionId;
 
-    private String missionId;
+  public Rocket(String name) {
+    this.name = name;
+    this.status = RocketStatus.ON_GROUND;
+  }
 
+  public String getName() {
+    return name;
+  }
 
+  public RocketStatus getStatus() {
+    return status;
+  }
 
+  public String getMissionId() {
+    return missionId;
+  }
 }

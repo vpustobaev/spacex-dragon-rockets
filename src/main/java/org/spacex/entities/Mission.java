@@ -4,14 +4,25 @@ import java.util.List;
 
 public class Mission {
 
-  private int id;
+  private final String name;
 
-  private String name;
-
-  private String status;
+  private MissionStatus status;
 
   private List<String> rocketIds;
 
+  public Mission(String name) {
+    this.name = name;
+  }
 
+  public String getName() {
+    return name;
+  }
 
+  public MissionStatus getStatus() {
+    return status;
+  }
+
+  public List<String> getRocketIds() {
+    return rocketIds;
+  }
 }

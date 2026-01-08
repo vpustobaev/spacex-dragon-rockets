@@ -1,15 +1,27 @@
 package org.spacex;
 
+import java.util.HashMap;
 import java.util.Map;
 import org.spacex.entities.Mission;
 import org.spacex.entities.Rocket;
 
 public class DragonRepository {
 
-  private Map<String, Rocket> rockets;
-  private Map<String, Mission> missions;
+  private final Map<String, Rocket> rockets = new HashMap<>();
+  private final Map<String, Mission> missions = new HashMap<>();
 
-  public void addNewRocket(String name) {}
+  public Rocket getRocket(String name) {
+
+    return rockets.get(name);
+  }
+
+  public void addNewRocket(String name) {
+
+    if (rockets.containsKey(name)) {
+      throw new IllegalArgumentException("Rocket '" + name + "' already exists.");
+    }
+    rockets.put(name, new Rocket(name));
+  }
 
   public void assignRocketToMission(String name) {}
 
@@ -23,5 +35,11 @@ public class DragonRepository {
 
   public void getMissionsSummary() {}
 
+  public Map<String, Rocket> getRockets() {
+    return rockets;
+  }
 
+  public Map<String, Mission> getMissions() {
+    return missions;
+  }
 }
