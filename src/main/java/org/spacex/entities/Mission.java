@@ -6,12 +6,13 @@ public class Mission {
 
   private final String name;
 
-  private MissionStatus status;
+  private final MissionStatus status;
 
   private List<String> rocketIds;
 
   public Mission(String name) {
     this.name = name;
+    this.status = MissionStatus.SCHEDULED;
   }
 
   public String getName() {

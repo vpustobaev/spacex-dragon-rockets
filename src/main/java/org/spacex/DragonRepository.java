@@ -15,6 +15,11 @@ public class DragonRepository {
     return rockets.get(name);
   }
 
+  public Mission getMission(String name) {
+
+    return missions.get(name);
+  }
+
   public void addNewRocket(String name) {
 
     if (rockets.containsKey(name)) {
@@ -23,13 +28,19 @@ public class DragonRepository {
     rockets.put(name, new Rocket(name));
   }
 
+  public void addNewMission(String name) {
+
+    if (missions.containsKey(name)) {
+      throw new IllegalArgumentException("Mission '" + name + "' already exists.");
+    }
+    missions.put(name, new Mission(name));
+  }
+
   public void assignRocketToMission(String name) {}
 
   public void assignRocketToMission() {}
 
   public void assignsRocketsToMission() {}
-
-  public void addNewMission() {}
 
   public void changeMissionStatus() {}
 
