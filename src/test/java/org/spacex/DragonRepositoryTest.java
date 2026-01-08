@@ -4,33 +4,45 @@ import org.junit.jupiter.api.*;
 import org.spacex.entities.Rocket;
 import org.spacex.entities.RocketStatus;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DragonRepositoryTest {
 
   private static DragonRepository dragonRepository;
 
-  @BeforeAll
-  static void setUp() {
+  @BeforeEach
+  void setUp() {
     dragonRepository = new DragonRepository();
   }
 
-  @AfterAll
-  static void tearDown() {}
+  @AfterEach
+  void tearDown() {}
 
   @Test
   void adds_new_Rocket() {
 
-    String newRocket = "New_Rocket";
-    assertNull(dragonRepository.getRocket(newRocket));
+    String newRocketName = "New_Rocket";
+    assertNull(dragonRepository.getRocket(newRocketName));
 
-    dragonRepository.addNewRocket(newRocket);
+    dragonRepository.addNewRocket(newRocketName);
 
-    Rocket rocket = dragonRepository.getRocket(newRocket);
+    Rocket rocket = dragonRepository.getRocket(newRocketName);
 
     assertEquals(RocketStatus.ON_GROUND, rocket.getStatus());
+  }
+
+  @Test
+  void throws_exception_on_adding_existing_Rocket() {
+
+    String newRocketName = "New_Rocket";
+    dragonRepository.addNewRocket(newRocketName);
+
+    Rocket rocket = dragonRepository.getRocket(newRocketName);
+    assertEquals(RocketStatus.ON_GROUND, rocket.getStatus());
+
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> dragonRepository.addNewRocket(newRocketName));
   }
 
   @Test
