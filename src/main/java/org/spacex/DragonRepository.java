@@ -150,22 +150,23 @@ public class DragonRepository {
 
   private void unassignRocketFromMission(String rocketToUnassign) {
 
-    for (Mission mission : missions.values()) {
+    Rocket rocket = getRocket(rocketToUnassign);
+    String missionName = rocket.getMissionId();
 
-      List<String> rockets = mission.getRocketIds();
+    if (missionName == null) {
+      return;
+    }
 
-      if (rockets.contains(rocketToUnassign)) {
-        rockets.remove(rocketToUnassign);
-        getRocket(rocketToUnassign).setMissionId(null);
+    Mission mission = missions.get(missionName);
+    List<String> assignedRockets = mission.getRocketIds();
 
-        if (rockets.isEmpty()) {
-          mission.setStatus(MissionStatus.SCHEDULED);
-        } else {
-          updateMissionStatusOnRockets(mission.getName());
-        }
+    assignedRockets.remove(rocketToUnassign);
+    rocket.setMissionId(null);
 
-        break;
-      }
+    if (assignedRockets.isEmpty()) {
+      mission.setStatus(MissionStatus.SCHEDULED);
+    } else {
+      updateMissionStatusOnRockets(missionName);
     }
   }
 
@@ -199,7 +200,7 @@ public class DragonRepository {
 
     return missions.values().stream()
         .sorted(
-            Comparator.comparingInt((Mission o) -> o.getRocketIds().size())
+            Comparator.comparingInt((Mission mission) -> mission.getRocketIds().size())
                 .thenComparing(Mission::getName)
                 .reversed())
         .collect(
