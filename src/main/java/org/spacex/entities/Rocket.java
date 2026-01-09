@@ -4,7 +4,7 @@ public class Rocket {
 
   private final String name;
 
-  private final RocketStatus status;
+  private RocketStatus status;
 
   private String missionId;
 
@@ -21,7 +21,17 @@ public class Rocket {
     return status;
   }
 
+  public Rocket setStatus(RocketStatus status) {
+    this.status = status;
+    return this;
+  }
+
   public String getMissionId() {
     return missionId;
+  }
+
+  public Rocket setMissionId(String missionId) {
+    this.missionId = missionId;
+    return this;
   }
 }

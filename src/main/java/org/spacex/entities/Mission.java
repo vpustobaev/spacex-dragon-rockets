@@ -1,14 +1,15 @@
 package org.spacex.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Mission {
 
   private final String name;
 
-  private final MissionStatus status;
+  private MissionStatus status;
 
-  private List<String> rocketIds;
+  private final List<String> rocketIds = new ArrayList<>();
 
   public Mission(String name) {
     this.name = name;
@@ -21,6 +22,11 @@ public class Mission {
 
   public MissionStatus getStatus() {
     return status;
+  }
+
+  public Mission setStatus(MissionStatus status) {
+    this.status = status;
+    return this;
   }
 
   public List<String> getRocketIds() {

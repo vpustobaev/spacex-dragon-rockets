@@ -74,13 +74,139 @@ class DragonRepositoryTest {
   }
 
   @Test
-  void assigns_Rocket_To_Mission() {}
+  void assigns_Rocket_To_Mission() {
+
+    String rocketName = "Rocket";
+    dragonRepository.addNewRocket(rocketName);
+
+    String missionName = "Mission";
+    dragonRepository.addNewMission(missionName);
+
+    dragonRepository.assignRocketToMission(rocketName, missionName);
+
+    Mission mission = dragonRepository.getMission(missionName);
+    assertEquals(MissionStatus.IN_PROGRESS, mission.getStatus());
+    assertTrue(mission.getRocketIds().contains(rocketName));
+
+    Rocket rocket = dragonRepository.getRocket(rocketName);
+    assertEquals(RocketStatus.IN_SPACE, rocket.getStatus());
+  }
+
+  @Test
+  void grounding_last_Rocket_sets_MissionStatus_to_scheduled() {
+
+    String rocketName1 = "Rocket1";
+    dragonRepository.addNewRocket(rocketName1);
+
+    String rocketName2 = "Rocket2";
+    dragonRepository.addNewRocket(rocketName2);
+
+    String missionName = "Mission";
+    dragonRepository.addNewMission(missionName);
+
+    dragonRepository.assignRocketToMission(rocketName1, missionName);
+    dragonRepository.assignRocketToMission(rocketName2, missionName);
+
+    dragonRepository.changeRocketStatus(rocketName1, RocketStatus.ON_GROUND);
+
+    Mission mission = dragonRepository.getMission(missionName);
+    assertEquals(MissionStatus.IN_PROGRESS, mission.getStatus());
+
+    dragonRepository.changeRocketStatus(rocketName2, RocketStatus.ON_GROUND);
+    mission = dragonRepository.getMission(missionName);
+    assertEquals(MissionStatus.SCHEDULED, mission.getStatus());
+  }
+
+  @Test
+  void repairing_Rocket_sets_its_corresponding_MissionStatus_to_pending() {
+
+    String rocketName = "Rocket";
+    dragonRepository.addNewRocket(rocketName);
+
+    String missionName = "Mission";
+    dragonRepository.addNewMission(missionName);
+
+    dragonRepository.assignRocketToMission(rocketName, missionName);
+
+    dragonRepository.changeRocketStatus(rocketName, RocketStatus.IN_REPAIR);
+
+    Mission mission = dragonRepository.getMission(missionName);
+    assertEquals(MissionStatus.PENDING, mission.getStatus());
+  }
+
+  @Test
+  void throws_Exception_on_changing_MissionStatus_to_In_Scheduled_when_rocket_is_assigned() {
+
+    String rocketName = "Rocket";
+    dragonRepository.addNewRocket(rocketName);
+
+    String missionName = "Mission";
+    dragonRepository.addNewMission(missionName);
+
+    dragonRepository.assignRocketToMission(rocketName, missionName);
+
+    IllegalArgumentException exception =
+        assertThrowsExactly(
+            IllegalArgumentException.class,
+            () -> dragonRepository.changeMissionStatus(missionName, MissionStatus.SCHEDULED));
+
+    assertEquals("Cannot set to 'Scheduled' while rockets are assigned.", exception.getMessage());
+  }
+
+  @Test
+  void
+      throws_Exception_on_changing_MissionStatus_to_In_Progress_when_minimum_one_assigned_Rocket_is_In_Repair() {
+
+    String rocketName1 = "Rocket1";
+    dragonRepository.addNewRocket(rocketName1);
+
+    String rocketName2 = "Rocket2";
+    dragonRepository.addNewRocket(rocketName2);
+
+    String missionName = "Mission";
+    dragonRepository.addNewMission(missionName);
+
+    dragonRepository.assignRocketToMission(rocketName1, missionName);
+    dragonRepository.assignRocketToMission(rocketName2, missionName);
+
+    dragonRepository.changeRocketStatus(rocketName1, RocketStatus.IN_REPAIR);
+
+    IllegalArgumentException exception =
+        assertThrowsExactly(
+            IllegalArgumentException.class,
+            () -> dragonRepository.changeMissionStatus(missionName, MissionStatus.IN_PROGRESS));
+
+    assertEquals(
+        "Cannot set to 'In Progress' while one or more rockets are 'In repair'.",
+        exception.getMessage());
+  }
+
+  @Test
+  void throws_Exception_on_changing_MissionStatus_to_Pending_when_no_Rocket_is_In_Repair() {
+
+    String rocketName1 = "Rocket1";
+    dragonRepository.addNewRocket(rocketName1);
+
+    String rocketName2 = "Rocket2";
+    dragonRepository.addNewRocket(rocketName2);
+
+    String missionName = "Mission";
+    dragonRepository.addNewMission(missionName);
+
+    dragonRepository.assignRocketToMission(rocketName1, missionName);
+    dragonRepository.assignRocketToMission(rocketName2, missionName);
+
+    IllegalArgumentException exception =
+        assertThrowsExactly(
+            IllegalArgumentException.class,
+            () -> dragonRepository.changeMissionStatus(missionName, MissionStatus.PENDING));
+
+    assertEquals(
+        "Cannot set to 'Pending' while no rockets are 'In repair'.", exception.getMessage());
+  }
 
   @Test
   void assigns_Rockets_To_Mission() {}
-
-  @Test
-  void changes_Mission_status() {}
 
   @Test
   void gets_Missions_summary() {}
