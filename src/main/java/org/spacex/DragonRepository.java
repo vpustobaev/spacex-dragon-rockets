@@ -1,8 +1,8 @@
 package org.spacex;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import static java.util.stream.Collectors.toMap;
+
+import java.util.*;
 import org.spacex.entities.Mission;
 import org.spacex.entities.MissionStatus;
 import org.spacex.entities.Rocket;
@@ -49,9 +49,7 @@ public class DragonRepository {
 
     if (newStatus == RocketStatus.ON_GROUND) {
       unassignRocketFromMission(rocketName);
-    }
-
-    if (missionToUpdate != null) {
+    } else if (missionToUpdate != null) {
       updateMissionStatusOnRockets(missionToUpdate);
     }
   }
@@ -59,16 +57,15 @@ public class DragonRepository {
   public void changeMissionStatus(String missionName, MissionStatus newStatus) {
 
     Mission mission = getMission(missionName);
+    List<String> rockets = mission.getRocketIds();
 
-    if (newStatus == MissionStatus.SCHEDULED && !mission.getRocketIds().isEmpty()) {
+    if (newStatus == MissionStatus.SCHEDULED && !rockets.isEmpty()) {
       throw new IllegalArgumentException("Cannot set to 'Scheduled' while rockets are assigned.");
     }
 
-    List<String> rocketIds = mission.getRocketIds();
-
     if (newStatus == MissionStatus.IN_PROGRESS) {
 
-      if (rocketIds.stream()
+      if (rockets.stream()
           .anyMatch(rocket -> getRocket(rocket).getStatus() == RocketStatus.IN_REPAIR)) {
 
         throw new IllegalArgumentException(
@@ -78,7 +75,7 @@ public class DragonRepository {
 
     if (newStatus == MissionStatus.PENDING) {
 
-      if (rocketIds.stream()
+      if (rockets.stream()
           .noneMatch(rocket -> getRocket(rocket).getStatus() == RocketStatus.IN_REPAIR)) {
 
         throw new IllegalArgumentException(
@@ -86,26 +83,12 @@ public class DragonRepository {
       }
     }
 
-    getMission(missionName).setStatus(newStatus);
-  }
+    if (newStatus == MissionStatus.ENDED) {
 
-  private void unassignRocketFromMission(String rocketName) {
-
-    for (Mission mission : missions.values()) {
-
-      if (mission.getRocketIds().contains(rocketName)) {
-
-        mission.getRocketIds().remove(rocketName);
-
-        if (mission.getRocketIds().isEmpty()) {
-          mission.setStatus(MissionStatus.SCHEDULED);
-        } else {
-          updateMissionStatusOnRockets(mission.getName());
-        }
-
-        break;
-      }
+      new ArrayList<>(rockets).forEach(this::unassignRocketFromMission);
     }
+
+    mission.setStatus(newStatus);
   }
 
   public void assignRocketToMission(String rocketName, String missionName) {
@@ -118,18 +101,72 @@ public class DragonRepository {
     }
 
     if (rocket.getMissionId() != null) {
-      throw new IllegalStateException(
+      throw new IllegalArgumentException(
           "Rocket is already assigned to mission: " + rocket.getMissionId());
     }
 
     if (mission.getStatus() == MissionStatus.ENDED) {
-      throw new IllegalStateException("Cannot assign rockets to an Ended mission");
+      throw new IllegalArgumentException("Cannot assign rockets to an Ended mission");
     }
 
     rocket.setMissionId(missionName);
     rocket.setStatus(RocketStatus.IN_SPACE);
     mission.getRocketIds().add(rocketName);
     updateMissionStatusOnRockets(missionName);
+  }
+
+  public void assignsRocketsToMission(List<String> rockets, String missionName) {
+
+    for (String rocket : rockets) {
+      assignRocketToMission(rocket, missionName);
+    }
+  }
+
+  public String getMissionsSummary() {
+
+    StringBuilder sb = new StringBuilder();
+
+    sortMissionsByRocketsNumberAndMissionNamesReversed()
+        .values()
+        .forEach(
+            mission -> {
+              sb.append("• ").append(mission.getName());
+              sb.append(" - ").append(mission.getStatus().getStatusName());
+              sb.append(" - Dragons: ").append(mission.getRocketIds().size());
+              sb.append("\n");
+
+              mission
+                  .getRocketIds()
+                  .forEach(
+                      r -> {
+                        sb.append(" o ").append(r);
+                        sb.append(" - ").append(getRocket(r).getStatus().getStatusName());
+                        sb.append("\n");
+                      });
+            });
+
+    return sb.toString();
+  }
+
+  private void unassignRocketFromMission(String rocketToUnassign) {
+
+    for (Mission mission : missions.values()) {
+
+      List<String> rockets = mission.getRocketIds();
+
+      if (rockets.contains(rocketToUnassign)) {
+        rockets.remove(rocketToUnassign);
+        getRocket(rocketToUnassign).setMissionId(null);
+
+        if (rockets.isEmpty()) {
+          mission.setStatus(MissionStatus.SCHEDULED);
+        } else {
+          updateMissionStatusOnRockets(mission.getName());
+        }
+
+        break;
+      }
+    }
   }
 
   private void updateMissionStatusOnRockets(String missionName) {
@@ -158,15 +195,18 @@ public class DragonRepository {
     }
   }
 
-  public void assignsRocketsToMission() {}
+  private Map<String, Mission> sortMissionsByRocketsNumberAndMissionNamesReversed() {
 
-  public void getMissionsSummary() {}
-
-  public Map<String, Rocket> getRockets() {
-    return rockets;
-  }
-
-  public Map<String, Mission> getMissions() {
-    return missions;
+    return missions.values().stream()
+        .sorted(
+            Comparator.comparingInt((Mission o) -> o.getRocketIds().size())
+                .thenComparing(Mission::getName)
+                .reversed())
+        .collect(
+            toMap(
+                Mission::getName,
+                mission -> mission,
+                (existing, replacement) -> existing,
+                LinkedHashMap::new));
   }
 }

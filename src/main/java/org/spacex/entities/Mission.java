@@ -6,10 +6,8 @@ import java.util.List;
 public class Mission {
 
   private final String name;
-
-  private MissionStatus status;
-
   private final List<String> rocketIds = new ArrayList<>();
+  private MissionStatus status;
 
   public Mission(String name) {
     this.name = name;
@@ -24,12 +22,24 @@ public class Mission {
     return status;
   }
 
-  public Mission setStatus(MissionStatus status) {
+  public void setStatus(MissionStatus status) {
     this.status = status;
-    return this;
   }
 
   public List<String> getRocketIds() {
     return rocketIds;
+  }
+
+  @Override
+  public String toString() {
+    return "Mission{"
+        + "name='"
+        + name
+        + '\''
+        + ", status="
+        + status
+        + ", rocketIds="
+        + rocketIds
+        + '}';
   }
 }

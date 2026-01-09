@@ -13,25 +13,19 @@ public class Rocket {
     this.status = RocketStatus.ON_GROUND;
   }
 
-  public String getName() {
-    return name;
-  }
-
   public RocketStatus getStatus() {
     return status;
   }
 
-  public Rocket setStatus(RocketStatus status) {
+  public void setStatus(RocketStatus status) {
     this.status = status;
-    return this;
   }
 
   public String getMissionId() {
     return missionId;
   }
 
-  public Rocket setMissionId(String missionId) {
+  public void setMissionId(String missionId) {
     this.missionId = missionId;
-    return this;
   }
 }
